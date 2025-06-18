@@ -2,7 +2,7 @@ import openai, os
 from dotenv import load_dotenv
 
 load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
+openai.api_key = os.getenv("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
 
 def transcribe_speech(audio_file):
     with open(audio_file, "rb") as f:
