@@ -1,0 +1,57 @@
+name: CI / CD – Niorlusx full stack
+
+on:
+  push:
+    branches: [ main ]
+
+env:                               # ←── pulled in from GitHub → Settings → Secrets & variables
+  FLY_API_TOKEN:  ${{ secrets.FLY_API_TOKEN }}       # backend deploy
+  DOCKER_BUILDX_FLAGS: "--platform linux/amd64"
+
+jobs:
+  backend:
+    name: Build & deploy Flask-Docker to Fly.io
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️  Checkout
+        uses: actions/checkout@v4
+
+      - name: 🐳 Set-up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🐳 Build & push image to Fly.io registry
+        run: |
+          docker build -t registry.fly.io/${{ vars.FLY_APP }}:github-${{ github.sha }} .
+          echo "${{ secrets.FLY_API_TOKEN }}" | flyctl auth login --access-token -
+          docker push registry.fly.io/${{ vars.FLY_APP }}:github-${{ github.sha }}
+
+      - name: 🚀 Release on Fly.io
+        run: |
+          flyctl deploy --image registry.fly.io/${{ vars.FLY_APP }}:github-${{ github.sha }} --remote-only --yes
+
+  dashboard:
+    name: Build & deploy Next.js dashboard to Vercel
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dashboard        # ← folder containing Next.js project
+    steps:
+      - name: ⬇️  Checkout
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 📦 Install deps & build
+        run: |
+          npm ci
+          npm run build
+
+      - name: 🚀 Deploy to Vercel (prod)
+        env:
+          VERCEL_TOKEN:   ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID:  ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: npx vercel --prod --yes
