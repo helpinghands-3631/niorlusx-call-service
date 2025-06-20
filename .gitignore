@@ -194,3 +194,4 @@ cython_debug/
 .cursorindexingignoreenv/
 .env
 __pycache__/
+.env

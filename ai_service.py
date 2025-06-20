@@ -1,4 +1,9 @@
-import openai, os
+import os
+
+OPENAI_API_KEY      = os.getenv("OPENAI_API_KEY")
+TWILIO_ACCOUNT_SID  = os.getenv("TWILIO_ACCOUNT_SID")
+TWILIO_API_KEY      = os.getenv("TWILIO_API_KEY")
+TWILIO_API_SECRET   = os.getenv("TWILIO_API_SECRET")import openai, os
 from dotenv import load_dotenv
 
 load_dotenv()
