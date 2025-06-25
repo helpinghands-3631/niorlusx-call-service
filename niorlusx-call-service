@@ -8,5 +8,9 @@ git config --global user.email "helpinghands.3631@gmail.com"
 git add .
 git commit -m "🔁 Finalized push: Niorlusx AI Call Service full deployment with legal, memory, assistant, and sync"
 
+NGROK_BOT_TOKEN=2yzAgYrdtaJz9pcMeTO2FCe4nP6_4tpH4s9yknaMAVgzgbWoC.env
+
+NGROK_API_KEY=2yzASzZsslZutzdDcHSNddZjeNT_3nDERugoh7Qqx3zjUBb16.env
+
 # Push to GitHub (via HTTPS or SSH depending on your setup)
 git push origin main
