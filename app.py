@@ -1,31 +1,50 @@
-from flask import Flask, request, jsonify
-from datetime import datetime
-import uuid
+from flask import Flask, request, Response, jsonify
+from twilio.twiml.voice_response import VoiceResponse
+from dotenv import load_dotenv
+import openai
+import os
+import logging
+
+# Load environment variables
+load_dotenv()
+
+# OpenAI API Key from .env
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 app = Flask(__name__)
-calls = []
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("Niorlusx")
 
-@app.route("/start_call", methods=["POST"])
-def start_call():
-    data = request.json
-    call_id = str(uuid.uuid4())
-    calls.append({
-        "call_id": call_id,
-        "user_id": data.get("user_id"),
-        "start_time": datetime.utcnow().isoformat(),
-        "status": "active"
-    })
-    return jsonify({"message": "Call started", "call_id": call_id}), 200
+@app.route("/twilio/webhook", methods=["POST"])
+def handle_call():
+    caller = request.form.get("From", "Unknown")
+    logger.info(f"📞 Incoming call from {caller}")
 
-@app.route("/end_call", methods=["POST"])
-def end_call():
-    data = request.json
-    for call in calls:
-        if call["call_id"] == data.get("call_id"):
-            call["end_time"] = datetime.utcnow().isoformat()
-            call["status"] = "ended"
-            return jsonify({"message": "Call ended"}), 200
-    return jsonify({"error": "Call not found"}), 404
+    response = VoiceResponse()
+    response.say("Welcome to the Niorlusx AI line. Generating your voice...", voice="Polly.Joanna", language="en-AU")
+
+    # Generate TTS using OpenAI
+    try:
+        with open("niorlusx.mp3", "wb") as f:
+            result = openai.audio.speech.create(
+                model="tts-1",
+                voice=os.getenv("VOICE_ID", "nova"),
+                input="Hello there. You’ve reached the Niorlusx assistant. What can I do for you?"
+            )
+            f.write(result.content)
+        logger.info("✅ OpenAI TTS voice generated.")
+    except Exception as e:
+        logger.error(f"❌ OpenAI TTS error: {e}")
+
+    response.record(max_length=90, timeout=5, play_beep=True)
+    response.hangup()
+    return Response(str(response), mimetype="text/xml")
+
+@app.route("/", methods=["GET"])
+def health_check():
+    return "✅ Niorlusx AI Flask server is active."
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    port = int(os.environ.get("PORT", 3000))
+    logger.info(f"🚀 Starting Flask app on port {port}")
+    app.run(host="0.0.0.0", port=port)
