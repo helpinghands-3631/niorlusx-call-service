@@ -1,0 +1,12 @@
+cd ~/niorlusx-call-service
+
+# Set your Git identity (if not done yet)
+git config --global user.name "HelpingHands"
+git config --global user.email "helpinghands.3631@gmail.com"
+
+# Stage and commit
+git add .
+git commit -m "🔁 Finalized push: Niorlusx AI Call Service full deployment with legal, memory, assistant, and sync"
+
+# Push to GitHub (via HTTPS or SSH depending on your setup)
+git push origin main
